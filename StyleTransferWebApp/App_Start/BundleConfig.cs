@@ -25,6 +25,14 @@ namespace StyleTransferWebApp
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            // dropzone js
+            bundles.Add(new ScriptBundle("~/bundles/dropzonejs").Include(
+                     "~/Scripts/dropzone/dropzone.js"));
+            // dropzone css
+            bundles.Add(new StyleBundle("~/Content/dropzonecss").Include(
+                     "~/Scripts/dropzone/basic.css",
+                     "~/Scripts/dropzone/dropzone.css"));
         }
     }
 }
