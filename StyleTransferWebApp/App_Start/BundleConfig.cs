@@ -32,7 +32,8 @@ namespace StyleTransferWebApp
             // dropzone css
             bundles.Add(new StyleBundle("~/Content/dropzonecss").Include(
                      "~/Scripts/dropzone/basic.css",
-                     "~/Scripts/dropzone/dropzone.css"));
+                     "~/Scripts/dropzone/dropzone.css",
+                     "~/Scripts/dropzone/dropzone-override.css"));
         }
     }
 }

@@ -10,17 +10,16 @@ namespace StyleTransferWebApp.Controllers
     {
         public ActionResult Index()
         {
-            // cookies
-            string cookievalue;
-            if (Request.Cookies["guid"] != null)
+            // get/save user id
+            string userid;
+            if (Request.Cookies["userid"] != null)
             {
-                cookievalue = Request.Cookies["guid"].Value.ToString();
+                userid = Request.Cookies["userid"].Value.ToString();
             }
             else
             {
-                Response.Cookies["guid"].Value = Guid.NewGuid().ToString();
+                Response.Cookies["userid"].Value = Guid.NewGuid().ToString();
             }
-
 
 
             return View();
@@ -40,49 +39,46 @@ namespace StyleTransferWebApp.Controllers
             return View();
         }
 
-        public ActionResult FileUpload(HttpPostedFileBase file)
+        public ActionResult UploadContentImage(HttpPostedFileBase file)
         {
-            Session["file1"] = file;
+            // save image to session
+            Session["content_image"] = file;
 
-            if (file != null)
-            {
-                string pic = System.IO.Path.GetFileName(file.FileName);
-                string path = System.IO.Path.Combine(
-                                       Server.MapPath("~/images/profile"), pic);
-                // file is uploaded
-                //file.SaveAs(path);
-
-
-            }
-            // after successfully uploading redirect the user
             return RedirectToAction("Index", "Home");
         }
 
-        public ActionResult FileUpload2(HttpPostedFileBase file)
+        public ActionResult UploadStyleImage(HttpPostedFileBase file)
         {
-            Session["file2"] = file;
-            if (file != null)
-            {
-                string pic = System.IO.Path.GetFileName(file.FileName);
-                string path = System.IO.Path.Combine(
-                                       Server.MapPath("~/images/profile"), pic);
-                // file is uploaded
-                //file.SaveAs(path);
+            // save image to session
+            Session["style_image"] = file;
 
-
-            }
-            // after successfully uploading redirect the user
             return RedirectToAction("Index", "Home");
         }
+
+
 
         public ActionResult SaveUploadedFile(IEnumerable<HttpPostedFileBase> files)
         {
+            var file = files.First();
+            // the other one
+            if (file != null)
+            {
+                string pic = System.IO.Path.GetFileName(file.FileName);
+                string path = System.IO.Path.Combine(
+                                       Server.MapPath("~/images/profile"), pic);
+                // file is uploaded
+                //file.SaveAs(path);
+
+
+            }
+
+            // the first one
             bool SavedSuccessfully = true;
             string fName = "";
             try
             {
                 //loop through all the files
-                foreach (var file in files)
+                foreach (var xfile in files)
                 {
 
                     //Save file content goes here

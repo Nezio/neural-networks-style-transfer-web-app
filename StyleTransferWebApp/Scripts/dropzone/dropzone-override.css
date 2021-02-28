@@ -1,0 +1,22 @@
+.dropzone {
+    border: 2px dashed #0087F7;
+    border-radius: 5px;
+}
+
+.dropzone .dz-preview .dz-error-message {
+    top: 150px !important;
+}
+
+.dropzone .dz-preview .dz-remove {
+    margin-top: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.dropzone .dz-preview {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    margin-left: auto;
+    margin-right: auto;
+}

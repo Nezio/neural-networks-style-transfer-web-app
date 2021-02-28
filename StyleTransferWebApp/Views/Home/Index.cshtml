@@ -3,34 +3,10 @@
 }
 
 <div id="dropzone">
-    <form action=@Url.Action("FileUpload", "Home") class="dropzone" id="dropzoneContent" enctype="multipart/form-data"></form>
+    <form action=@Url.Action("UploadContentImage", "Home") class="dropzone" id="dropzoneContent" enctype="multipart/form-data"></form>
+    <form action=@Url.Action("UploadStyleImage", "Home") class="dropzone" id="dropzoneStyle" enctype="multipart/form-data"></form>
 </div>
 
 @section Scripts{
-    <script>
-        Dropzone.autoDiscover = false;
-        window.onload = function () {
-
-            // creete dropzone options object
-            var dropzoneOptions = {
-                dictDefaultMessage: 'Click here or drop files to upload',
-                maxFiles: 1,
-                maxFilesize: 10, // MB
-                addRemoveLinks: true,
-                init: function () {
-                    this.on("addedfile", function (file) {
-                        console.log('New file added: ', file);
-
-                        // remove old file if another is uploaded
-                        if (this.files[1] != null) {
-                            this.removeFile(this.files[0]);
-                        }
-                    });
-                }
-            };
-            // create and attach dropzone
-            var dropzoneContentElement = document.querySelector('#dropzoneContent');
-            var dropzoneContent = new Dropzone(dropzoneContentElement, dropzoneOptions);
-        };
-    </script>
+    <script src="@Url.Content("~/Scripts/Home/dropzone-settings.js")"></script>
 }
