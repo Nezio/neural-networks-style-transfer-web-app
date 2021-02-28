@@ -1,28 +1,33 @@
-﻿using System;
+﻿using StyleTransferWebApp.Helpers;
+using StyleTransferWebApp.Models;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Web;
+using System.Web.Configuration;
 using System.Web.Mvc;
 
 namespace StyleTransferWebApp.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Index(string message = null)
         {
             // get/save user id
-            string userid;
-            if (Request.Cookies["userid"] != null)
+            string userID;
+            if (Request.Cookies["userID"] != null)
             {
-                userid = Request.Cookies["userid"].Value.ToString();
+                userID = Request.Cookies["userID"].Value.ToString();
             }
             else
             {
-                Response.Cookies["userid"].Value = Guid.NewGuid().ToString();
+                Response.Cookies["userID"].Value = Guid.NewGuid().ToString();
             }
+            ViewData["responseMessage"] = message;
 
-
-            return View();
+            return View(new Home { responseMessage = message });
         }
 
         public ActionResult About()
@@ -42,7 +47,8 @@ namespace StyleTransferWebApp.Controllers
         public ActionResult UploadContentImage(HttpPostedFileBase file)
         {
             // save image to session
-            Session["content_image"] = file;
+            MyImage image = new MyImage(Image.FromStream(file.InputStream, true, true), file.FileName);
+            Session["content_image"] = image;
 
             return RedirectToAction("Index", "Home");
         }
@@ -50,11 +56,70 @@ namespace StyleTransferWebApp.Controllers
         public ActionResult UploadStyleImage(HttpPostedFileBase file)
         {
             // save image to session
-            Session["style_image"] = file;
+            MyImage image = new MyImage(Image.FromStream(file.InputStream, true, true), file.FileName);
+            Session["style_image"] = image;
 
             return RedirectToAction("Index", "Home");
         }
 
+        public ActionResult StartStyleTransfer()
+        {
+            MyImage contentImage = (MyImage)Session["content_image"];
+            MyImage styleImage = (MyImage)Session["style_image"];
+
+            bool savedSuccessfully = true;
+            string responseMessage = "";
+            
+            try
+            {
+                if (contentImage == null || styleImage == null)
+                {
+                    throw new Exception("Content and style images have to be set!");
+                }
+
+                string inputPath = WebConfigurationManager.AppSettings["input_folder"];
+                string datetime = DateTime.Now.ToString("yyyy'-'MM'-'dd'-'HH'-'mm'-'ss");
+                string userID = Request.Cookies["userID"].Value.ToString();
+                string jobID = contentImage.name + "-" + styleImage.name;
+
+                // create the job folder if it doesn't exist
+                string jobFolderName = datetime + "_" + userID + "_" + jobID;
+                string jobFolderPath = Path.Combine(inputPath, jobFolderName);
+                if (!Directory.Exists(jobFolderPath))
+                {
+                    Directory.CreateDirectory(jobFolderPath);
+                }
+                else
+                {
+                    // no need to do anything, already created
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // create paths for images
+                string contentImagePath = Path.Combine(jobFolderPath, "content" + contentImage.extension);
+                string styleImagePath = Path.Combine(jobFolderPath, "style" + styleImage.extension);
+
+                // save images to the job folder
+                contentImage.image.Save(contentImagePath);
+                styleImage.image.Save(styleImagePath);
+            }
+            catch (Exception ex)
+            {
+                savedSuccessfully = false;
+                responseMessage = ex.Message;
+            }
+
+            if (savedSuccessfully)
+            {
+                return RedirectToAction("Index", new { message = "Style trasnfer is in progress. Refresh the page in about two minutes to see the results." });
+            }
+            else
+            {
+                return RedirectToAction("Index", new { message = "There has been a problem starting style transfer. Message: " + responseMessage });
+            }
+
+            //return RedirectToAction("Index", "Home");
+        }
 
 
         public ActionResult SaveUploadedFile(IEnumerable<HttpPostedFileBase> files)

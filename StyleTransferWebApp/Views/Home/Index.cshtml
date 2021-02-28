@@ -1,4 +1,6 @@
-﻿@{
+﻿@model StyleTransferWebApp.Models.Home
+
+@{
     ViewBag.Title = "Home Page";
 }
 
@@ -7,6 +9,14 @@
     <form action=@Url.Action("UploadStyleImage", "Home") class="dropzone" id="dropzoneStyle" enctype="multipart/form-data"></form>
 </div>
 
+<div>
+    <input type="button" value="Start style transfer" class="btn btn-primary" onclick="location.href='@Url.Action("StartStyleTransfer", "Home")'" />
+</div>
+
 @section Scripts{
-    <script src="@Url.Content("~/Scripts/Home/dropzone-settings.js")"></script>
+    <script>
+        var responseMessage = '@Model.responseMessage';
+    </script>
+
+    <script src="@Url.Content("~/Scripts/Home/index.js")"></script>
 }

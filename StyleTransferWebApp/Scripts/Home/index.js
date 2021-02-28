@@ -2,7 +2,17 @@
 Dropzone.autoDiscover = false;
 
 window.onload = function () {
+    if (responseMessage) {
+        alert(responseMessage);
+        window.location.href = "/Home/Index";
+    }
 
+    InitializeDropzoneSettings();
+    
+};
+
+
+function InitializeDropzoneSettings() {
     // create global dropzone options object
     var dropzoneGlobalOptions = {
         maxFiles: 1,
@@ -48,5 +58,4 @@ window.onload = function () {
     // create and attach the style dropzone
     var dropzoneStyleElement = document.querySelector('#dropzoneStyle');
     var dropzoneStyle = new Dropzone(dropzoneStyleElement, dropzoneStyleOptions);
-
-};
+}
