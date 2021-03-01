@@ -4,12 +4,12 @@
     ViewBag.Title = "Home Page";
 }
 
-<div id="dropzone">
-    <form action=@Url.Action("UploadContentImage", "Home") class="dropzone" id="dropzoneContent" enctype="multipart/form-data"></form>
-    <form action=@Url.Action("UploadStyleImage", "Home") class="dropzone" id="dropzoneStyle" enctype="multipart/form-data"></form>
+<div id="dropzone" class="flex-container">
+    <form action=@Url.Action("UploadContentImage", "Home") class="dropzone flex-child" id="dropzoneContent" enctype="multipart/form-data"></form>
+    <form action=@Url.Action("UploadStyleImage", "Home") class="dropzone flex-child" id="dropzoneStyle" enctype="multipart/form-data"></form>
 </div>
 
-<div>
+<div class="col text-center">
     <input type="button" value="Start style transfer" class="btn btn-primary" onclick="location.href='@Url.Action("StartStyleTransfer", "Home")'" />
 </div>
 

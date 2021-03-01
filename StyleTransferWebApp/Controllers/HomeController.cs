@@ -17,14 +17,23 @@ namespace StyleTransferWebApp.Controllers
         {
             // get/save user id
             string userID;
-            if (Request.Cookies["userID"] != null)
+            if (Request.Cookies["userInfo"] != null)
             {
-                userID = Request.Cookies["userID"].Value.ToString();
+                userID = Request.Cookies["userInfo"]["userID"];
             }
             else
             {
-                Response.Cookies["userID"].Value = Guid.NewGuid().ToString();
+                HttpCookie userInfo = new HttpCookie("userInfo");
+                userID = userInfo["userID"] = Guid.NewGuid().ToString();
+                userInfo.Expires = DateTime.Now.AddDays(180);
+                Response.Cookies.Add(userInfo);
             }
+
+
+            GeneralHelper.GetResultsForUser(userID);
+
+
+            // set response message or just pass it as null/empty
             ViewData["responseMessage"] = message;
 
             return View(new Home { responseMessage = message });
@@ -79,7 +88,7 @@ namespace StyleTransferWebApp.Controllers
 
                 string inputPath = WebConfigurationManager.AppSettings["input_folder"];
                 string datetime = DateTime.Now.ToString("yyyy'-'MM'-'dd'-'HH'-'mm'-'ss");
-                string userID = Request.Cookies["userID"].Value.ToString();
+                string userID = Request.Cookies["userInfo"]["userID"];
                 string jobID = contentImage.name + "-" + styleImage.name;
 
                 // create the job folder if it doesn't exist
@@ -118,75 +127,8 @@ namespace StyleTransferWebApp.Controllers
                 return RedirectToAction("Index", new { message = "There has been a problem starting style transfer. Message: " + responseMessage });
             }
 
-            //return RedirectToAction("Index", "Home");
         }
 
-
-        public ActionResult SaveUploadedFile(IEnumerable<HttpPostedFileBase> files)
-        {
-            var file = files.First();
-            // the other one
-            if (file != null)
-            {
-                string pic = System.IO.Path.GetFileName(file.FileName);
-                string path = System.IO.Path.Combine(
-                                       Server.MapPath("~/images/profile"), pic);
-                // file is uploaded
-                //file.SaveAs(path);
-
-
-            }
-
-            // the first one
-            bool SavedSuccessfully = true;
-            string fName = "";
-            try
-            {
-                //loop through all the files
-                foreach (var xfile in files)
-                {
-
-                    //Save file content goes here
-                    fName = file.FileName;
-                    if (file != null && file.ContentLength > 0)
-                    {
-                        ;
-
-                        /*var originalDirectory = new DirectoryInfo(string.Format("{0}Images\\", Server.MapPath(@"\")));
-
-                        string pathString = System.IO.Path.Combine(originalDirectory.ToString(), "imagepath");
-
-                        var fileName1 = Path.GetFileName(file.FileName);
-
-                        bool isExists = System.IO.Directory.Exists(pathString);
-
-                        if (!isExists)
-                            System.IO.Directory.CreateDirectory(pathString);
-
-                        var path = string.Format("{0}\\{1}", pathString, file.FileName);
-                        file.SaveAs(path);*/
-
-                    }
-
-                }
-
-            }
-            catch (Exception ex)
-            {
-                SavedSuccessfully = false;
-            }
-
-
-            /* if (SavedSuccessfully)
-             {
-                 return RedirectToAction("Index", new { Message = "All files saved successfully" });
-             }
-             else
-             {
-                 return RedirectToAction("Index", new { Message = "Error in saving file" });
-             }*/
-            return RedirectToAction("Index", "Home");
-        }
 
 
     }
