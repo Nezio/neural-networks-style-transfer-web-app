@@ -126,7 +126,8 @@
     </Compile>
     <Compile Include="Helpers\GeneralHelper.cs" />
     <Compile Include="Helpers\MyImage.cs" />
-    <Compile Include="Models\Home.cs" />
+    <Compile Include="Helpers\StyleTransferResult.cs" />
+    <Compile Include="Models\StyleTransferViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

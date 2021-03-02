@@ -15,6 +15,8 @@ namespace StyleTransferWebApp.Controllers
     {
         public ActionResult Index(string message = null)
         {
+            StyleTransferViewModel stViewModel = new StyleTransferViewModel();
+
             // get/save user id
             string userID;
             if (Request.Cookies["userInfo"] != null)
@@ -29,14 +31,21 @@ namespace StyleTransferWebApp.Controllers
                 Response.Cookies.Add(userInfo);
             }
 
-
-            GeneralHelper.GetResultsForUser(userID);
-
+            // set user results to return to view (can be null if there are no results yet)
+            stViewModel.styleTransferUserResults = GeneralHelper.GetResultsForUser(userID);
 
             // set response message or just pass it as null/empty
-            ViewData["responseMessage"] = message;
+            stViewModel.responseMessage = message;
 
-            return View(new Home { responseMessage = message });
+            // debug
+            var stResultsList = new List<StyleTransferResult>();
+            var stResult = new StyleTransferResult();
+            stResult.contentImage = "/style_transfer_work_dir/output/5df38337-8911-49d0-af1c-dda00abf7db6/2021-03-01-22-25-51_horse-wave/input/content.png";
+            stResultsList.Add(stResult);
+            stViewModel.styleTransferUserResults = stResultsList;
+
+
+            return View(stViewModel);
         }
 
         public ActionResult About()
@@ -87,6 +96,7 @@ namespace StyleTransferWebApp.Controllers
                 }
 
                 string inputPath = WebConfigurationManager.AppSettings["input_folder"];
+                inputPath = Server.MapPath(inputPath);
                 string datetime = DateTime.Now.ToString("yyyy'-'MM'-'dd'-'HH'-'mm'-'ss");
                 string userID = Request.Cookies["userInfo"]["userID"];
                 string jobID = contentImage.name + "-" + styleImage.name;
