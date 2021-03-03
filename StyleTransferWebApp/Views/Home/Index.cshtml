@@ -13,13 +13,73 @@
     <input type="button" value="Start style transfer" class="btn btn-primary" onclick="location.href='@Url.Action("StartStyleTransfer", "Home")'" />
 </div>
 
-<img src="~/@Model.styleTransferUserResults.First().styleImage" alt="Input horse2" width="500">
+<hr />
+
+<div id="userResultsContainer">
+
+</div>
+
+@*<img src="~/@Model.styleTransferUserResults.First().styleImage" alt="Input horse2" width="500">*@
+
 
 
 @section Scripts{
+
+
+    @*render generated images*@
+    <script>
+        function ImageClick(image) {
+            window.open(image.src)
+        };
+
+        // get data from model
+        var styleTransferUserResults = @Html.Raw(Json.Encode(Model.styleTransferUserResults));
+
+        var maxImageWidth = 300;
+
+        // render result images for each output folder this user has
+        styleTransferUserResults.forEach(function (styleTransferUserResult) {
+            var resultContainer = $('<div>');
+            resultContainer.attr('class', 'resultContainer')
+
+            // add content image
+            var contentImage = $('<img>');
+            contentImage.attr('src', '/' + styleTransferUserResult.contentImage);
+            contentImage.attr('class', 'image')
+            contentImage.attr('width', maxImageWidth)
+            contentImage.attr('onClick', 'ImageClick(this)')
+            contentImage.appendTo(resultContainer);
+
+            // add style image
+            var styleImage = $('<img>');
+            styleImage.attr('src', '/' + styleTransferUserResult.styleImage);
+            styleImage.attr('class', 'image')
+            styleImage.attr('width', maxImageWidth)
+            styleImage.attr('onClick', 'ImageClick(this)')
+            styleImage.appendTo(resultContainer);
+
+            // add the last generated image
+            var generatedImage = $('<img>');
+            generatedImage.attr('src', '/' + styleTransferUserResult.generatedImages[styleTransferUserResult.generatedImages.length - 1]);
+            generatedImage.attr('class', 'image')
+            generatedImage.attr('width', maxImageWidth)
+            generatedImage.attr('onClick', 'ImageClick(this)')
+            generatedImage.appendTo(resultContainer);
+
+
+            // append result container to the user results container
+            resultContainer.appendTo($('#userResultsContainer'));
+        }); 
+
+
+    </script>
+
+
+    @*initialization for the separate script files*@
     <script>
         var responseMessage = '@Model.responseMessage';
     </script>
 
+    @*include separate script files*@
     <script src="@Url.Content("~/Scripts/Home/index.js")"></script>
 }
