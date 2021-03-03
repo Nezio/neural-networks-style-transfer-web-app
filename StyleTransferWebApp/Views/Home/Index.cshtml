@@ -13,8 +13,7 @@
     <input type="button" value="Start style transfer" class="btn btn-primary" onclick="location.href='@Url.Action("StartStyleTransfer", "Home")'" />
 </div>
 
-<img src="~/Content/horse.png" alt="Input horse" width="500">
-<img src="@Model.styleTransferUserResults.First().contentImage" alt="Input horse" width="500">
+<img src="~/@Model.styleTransferUserResults.First().styleImage" alt="Input horse2" width="500">
 
 
 @section Scripts{

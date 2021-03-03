@@ -9,6 +9,6 @@ namespace StyleTransferWebApp.Helpers
     {
         public string contentImage;
         public string styleImage;
-        public List<string> generatedImages;
+        public List<string> generatedImages = new List<string>();
     }
 }

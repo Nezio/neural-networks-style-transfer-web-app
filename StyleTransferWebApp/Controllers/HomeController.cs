@@ -38,11 +38,13 @@ namespace StyleTransferWebApp.Controllers
             stViewModel.responseMessage = message;
 
             // debug
-            var stResultsList = new List<StyleTransferResult>();
+            /*var stResultsList = new List<StyleTransferResult>();
             var stResult = new StyleTransferResult();
             stResult.contentImage = "/style_transfer_work_dir/output/5df38337-8911-49d0-af1c-dda00abf7db6/2021-03-01-22-25-51_horse-wave/input/content.png";
+            stResult.contentImage = "style_transfer_work_dir\\output\\5df38337-8911-49d0-af1c-dda00abf7db6\\2021-03-01-22-25-51_horse-wave\\input\\content.png";
+            stResult.contentImage = stResult.contentImage.Replace("\\", "/");
             stResultsList.Add(stResult);
-            stViewModel.styleTransferUserResults = stResultsList;
+            stViewModel.styleTransferUserResults = stResultsList;*/
 
 
             return View(stViewModel);
