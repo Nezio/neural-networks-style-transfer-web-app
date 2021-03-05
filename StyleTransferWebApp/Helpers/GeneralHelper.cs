@@ -47,7 +47,11 @@ namespace StyleTransferWebApp.Helpers
                 // get content and style image paths
                 if (Directory.Exists(resultInputFolder))
                 {
-                    // TODO: set 404 images as default
+                    // set default images (404 and WIP)
+                    styleTransferResult.contentImage = "Content/Images/404.jpg";
+                    styleTransferResult.styleImage = "Content/Images/404.jpg";
+                    styleTransferResult.generatedImages.Add("Content/Images/WIP.jpg");
+
 
                     // get content image path
                     var contentImageArray = Directory.GetFiles(resultInputFolder, "*content*");

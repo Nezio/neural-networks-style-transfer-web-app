@@ -37,15 +37,6 @@ namespace StyleTransferWebApp.Controllers
             // set response message or just pass it as null/empty
             stViewModel.responseMessage = message;
 
-            // debug
-            /*var stResultsList = new List<StyleTransferResult>();
-            var stResult = new StyleTransferResult();
-            stResult.contentImage = "/style_transfer_work_dir/output/5df38337-8911-49d0-af1c-dda00abf7db6/2021-03-01-22-25-51_horse-wave/input/content.png";
-            stResult.contentImage = "style_transfer_work_dir\\output\\5df38337-8911-49d0-af1c-dda00abf7db6\\2021-03-01-22-25-51_horse-wave\\input\\content.png";
-            stResult.contentImage = stResult.contentImage.Replace("\\", "/");
-            stResultsList.Add(stResult);
-            stViewModel.styleTransferUserResults = stResultsList;*/
-
 
             return View(stViewModel);
         }
@@ -89,7 +80,12 @@ namespace StyleTransferWebApp.Controllers
 
             bool savedSuccessfully = true;
             string responseMessage = "";
-            
+
+            string numberInQueue = "";
+            string eta = "";
+
+            string jobFolderPath = null;
+
             try
             {
                 if (contentImage == null || styleImage == null)
@@ -105,7 +101,7 @@ namespace StyleTransferWebApp.Controllers
 
                 // create the job folder if it doesn't exist
                 string jobFolderName = datetime + "_" + userID + "_" + jobID;
-                string jobFolderPath = Path.Combine(inputPath, jobFolderName);
+                jobFolderPath = Path.Combine(inputPath, jobFolderName);
                 if (!Directory.Exists(jobFolderPath))
                 {
                     Directory.CreateDirectory(jobFolderPath);
@@ -123,16 +119,31 @@ namespace StyleTransferWebApp.Controllers
                 // save images to the job folder
                 contentImage.image.Save(contentImagePath);
                 styleImage.image.Save(styleImagePath);
+
+                // get queue number and eta
+                numberInQueue = Directory.GetDirectories(inputPath).Length.ToString();
+                eta = Math.Ceiling(Directory.GetDirectories(inputPath).Length * 1.5).ToString();
             }
             catch (Exception ex)
             {
+                // delete job folder if created
+                if (!string.IsNullOrEmpty(jobFolderPath) && Directory.Exists(jobFolderPath))
+                {
+                    Directory.Delete(jobFolderPath, true);
+                }
+
                 savedSuccessfully = false;
                 responseMessage = ex.Message;
             }
 
             if (savedSuccessfully)
             {
-                return RedirectToAction("Index", new { message = "Style trasnfer is in progress. Refresh the page in about two minutes to see the results." });
+                // clear session
+                Session["content_image"] = null;
+                Session["style_image"] = null;
+
+                string msg = "Style trasnfer is in progress. You are number " + numberInQueue + " in the queue. Refresh the page in about " + eta + " minutes to see the results.";
+                return RedirectToAction("Index", new { message = msg });
             }
             else
             {
