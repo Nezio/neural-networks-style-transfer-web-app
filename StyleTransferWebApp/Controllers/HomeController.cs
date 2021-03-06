@@ -34,6 +34,9 @@ namespace StyleTransferWebApp.Controllers
             // set user results to return to view (can be null if there are no results yet)
             stViewModel.styleTransferUserResults = GeneralHelper.GetResultsForUser(userID);
 
+            // append unprocessed job folders to the results list
+            stViewModel.styleTransferUserResults.InsertRange(0, GeneralHelper.GetUnprocessedImagesForUser(userID));
+
             // set response message or just pass it as null/empty
             stViewModel.responseMessage = message;
 

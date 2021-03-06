@@ -37,21 +37,17 @@ namespace StyleTransferWebApp.Helpers
             // get image paths for each result folder that user has
             foreach (var resultFolder in resultFolderPaths)
             {
-                string resultFolderRelativePath = resultFolder.Replace(AppDomain.CurrentDomain.BaseDirectory, string.Empty);
-
                 StyleTransferResult styleTransferResult = new StyleTransferResult();
 
                 // get input folder from inside the result folder (this folder should have content and style images used during the style transfer)
-                string resultInputFolder = Path.Combine(resultFolder, "input");
+                string resultInputFolder = Path.Combine(resultFolder, "input");                
 
                 // get content and style image paths
                 if (Directory.Exists(resultInputFolder))
                 {
-                    // set default images (404 and WIP)
+                    // set default images to 404
                     styleTransferResult.contentImage = "Content/Images/404.jpg";
                     styleTransferResult.styleImage = "Content/Images/404.jpg";
-                    styleTransferResult.generatedImages.Add("Content/Images/WIP.jpg");
-
 
                     // get content image path
                     var contentImageArray = Directory.GetFiles(resultInputFolder, "*content*");
@@ -82,10 +78,72 @@ namespace StyleTransferWebApp.Helpers
                         styleTransferResult.generatedImages.Add(generatedImageRelativePath.Replace("\\", "/"));
                     }
                 }
+                else
+                {
+                    // set WIP image if there are no generated images yet
+                    styleTransferResult.generatedImages.Add("Content/Images/WIP.jpg");
+                }
 
                 // add results of one job folder to the list that contains all resulting job folders for user
                 result.Add(styleTransferResult);
             }
+
+            // show newest on top
+            result.Reverse();
+
+            return result;
+        }
+
+        public static List<StyleTransferResult> GetUnprocessedImagesForUser(string userID)
+        {
+            var result = new List<StyleTransferResult>();
+
+            // check if there are any job folders for this user in the input folder
+            string inputPath = WebConfigurationManager.AppSettings["input_folder"];
+            inputPath = HostingEnvironment.MapPath(inputPath);
+            var jobFolderPaths = Directory.GetDirectories(inputPath, "*" + userID + "*");
+
+            // return if there are no folders
+            if (jobFolderPaths.Length <= 0)
+            {
+                // user has no unprocessed job folders
+                return null;
+            }
+
+            // get image paths for each result folder that user has
+            foreach (var jobFolder in jobFolderPaths)
+            {
+                StyleTransferResult styleTransferResult = new StyleTransferResult();
+
+                // set default images (404 and InQueue)
+                styleTransferResult.contentImage = "Content/Images/404.jpg";
+                styleTransferResult.styleImage = "Content/Images/404.jpg";
+                styleTransferResult.generatedImages.Add("Content/Images/InQueue.jpg");
+
+                // get content image path
+                var contentImageArray = Directory.GetFiles(jobFolder, "*content*");
+                if (contentImageArray.Length > 0)
+                {
+                    string contentImagePath = contentImageArray.First();
+                    string contentImageRelativePath = contentImagePath.Replace(AppDomain.CurrentDomain.BaseDirectory, string.Empty);
+                    styleTransferResult.contentImage = contentImageRelativePath.Replace("\\", "/");
+                }
+
+                // get style image path
+                var styleImageArray = Directory.GetFiles(jobFolder, "*style*");
+                if (styleImageArray.Length > 0)
+                {
+                    string styleImagePath = styleImageArray.First();
+                    string styleImageRelativePath = styleImagePath.Replace(AppDomain.CurrentDomain.BaseDirectory, string.Empty);
+                    styleTransferResult.styleImage = styleImageRelativePath.Replace("\\", "/");
+                }
+
+                // add results of one job folder to the list
+                result.Add(styleTransferResult);
+            }
+
+            // show newest on top
+            result.Reverse();
 
             return result;
         }
