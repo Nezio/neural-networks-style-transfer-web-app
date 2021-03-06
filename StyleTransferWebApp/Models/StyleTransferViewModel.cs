@@ -9,7 +9,7 @@ namespace StyleTransferWebApp.Models
     public class StyleTransferViewModel
     {
         public string responseMessage { get; set; }
-        public List<StyleTransferResult> styleTransferUserResults;
+        public List<StyleTransferResult> styleTransferUserResults = new List<StyleTransferResult>();
 
     }
 }

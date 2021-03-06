@@ -11,7 +11,6 @@ window.onload = function () {
     
 };
 
-
 function InitializeDropzoneSettings() {
     // create global dropzone options object
     var dropzoneGlobalOptions = {

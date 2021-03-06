@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Configuration;
+using System.Web.Hosting;
 using System.Web.Mvc;
 
 namespace StyleTransferWebApp.Controllers
@@ -31,11 +32,19 @@ namespace StyleTransferWebApp.Controllers
                 Response.Cookies.Add(userInfo);
             }
 
-            // set user results to return to view (can be null if there are no results yet)
-            stViewModel.styleTransferUserResults = GeneralHelper.GetResultsForUser(userID);
+            // preppend unprocessed job folders to the results list
+            var unprocessedImages = GeneralHelper.GetUnprocessedImagesForUser(userID);
+            if (unprocessedImages != null)
+            {
+                stViewModel.styleTransferUserResults.AddRange(unprocessedImages);
+            }
 
-            // append unprocessed job folders to the results list
-            stViewModel.styleTransferUserResults.InsertRange(0, GeneralHelper.GetUnprocessedImagesForUser(userID));
+            // set user results to return to view (can be null if there are no results yet)
+            var resultImages = GeneralHelper.GetResultsForUser(userID);
+            if (resultImages != null)
+            {
+                stViewModel.styleTransferUserResults.AddRange(resultImages);
+            }            
 
             // set response message or just pass it as null/empty
             stViewModel.responseMessage = message;
@@ -139,20 +148,51 @@ namespace StyleTransferWebApp.Controllers
                 responseMessage = ex.Message;
             }
 
-            if (savedSuccessfully)
+            if (!savedSuccessfully)
             {
-                // clear session
-                Session["content_image"] = null;
-                Session["style_image"] = null;
-
-                string msg = "Style trasnfer is in progress. You are number " + numberInQueue + " in the queue. Refresh the page in about " + eta + " minutes to see the results.";
-                return RedirectToAction("Index", new { message = msg });
-            }
-            else
-            {
-                return RedirectToAction("Index", new { message = "There has been a problem starting style transfer. Message: " + responseMessage });
+                return RedirectToAction("Index", new { message = "There has been a problem starting style transfer. Message: " + responseMessage });    
             }
 
+            // clear session
+            Session["content_image"] = null;
+            Session["style_image"] = null;
+
+            string msg = "Style trasnfer is in progress. You are number " + numberInQueue + " in the queue. Refresh the page in about " + eta + " minutes to see the results.";
+
+            return RedirectToAction("Index", new { message = msg });
+        }
+        public ActionResult DeleteOutputFolder(string folder)
+        {
+            bool deletedSuccessfully = false;
+            string responseMessage = "";
+
+            try
+            {
+                // delete the folder
+                string outputPath = WebConfigurationManager.AppSettings["output_folder"];
+                outputPath = HostingEnvironment.MapPath(outputPath);
+                string userID = Request.Cookies["userInfo"]["userID"];
+                string userOutputFolder = Path.Combine(outputPath, userID);
+                string folderToDelete = Path.Combine(userOutputFolder, folder);
+
+                Directory.Delete(folderToDelete, true);
+
+                deletedSuccessfully = true;
+            }
+            catch (Exception ex)
+            {
+                deletedSuccessfully = false;
+                responseMessage = ex.Message;
+            }
+
+            if (!deletedSuccessfully)
+            {
+                string msg = "Delete failed! Reason: " + responseMessage;
+                return this.Json(new { success = false, message = msg});
+            }
+            
+            responseMessage = "Delete successful!";
+            return this.Json(new { success = true, message = responseMessage });
         }
 
 

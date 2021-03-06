@@ -19,23 +19,33 @@
 
 </div>
 
-@*<img src="~/@Model.styleTransferUserResults.First().styleImage" alt="Input horse2" width="500">*@
-
-
 
 @section Scripts{
 
-
-    @*render generated images*@
+    @*rendering section*@
     <script>
         function ImageClick(image) {
             window.open(image.src)
         };
 
+        function Delete(folder) {
+            $(function () {
+                $.post('/Home/DeleteOutputFolder',
+                    { folder: folder }, function (data) {
+                        alert(data.message);
+
+                        if (data.success) {
+                            window.location.href = '@Url.Action("Index", "Home")';
+                        }
+                });
+            });
+        }
+
         // get data from model
         var styleTransferUserResults = @Html.Raw(Json.Encode(Model.styleTransferUserResults));
 
         var maxImageWidth = 300;
+        var maxButtonImageWidth = 20;
 
         // render result images for each output folder this user has
         styleTransferUserResults.forEach(function (styleTransferUserResult) {
@@ -66,10 +76,24 @@
             generatedImage.attr('onClick', 'ImageClick(this)')
             generatedImage.appendTo(resultContainer);
 
+            // add delete button
+            var fullFolderPath = styleTransferUserResult.generatedImages[styleTransferUserResult.generatedImages.length - 1];
+            var imageName = fullFolderPath.split('/')[fullFolderPath.split('/').length - 1].toLowerCase()
+            var folderName = fullFolderPath.split('/')[fullFolderPath.split('/').length - 2]
+            if (!imageName.includes('queue') && !imageName.includes('wip') && !imageName.includes('404')) {
+                // only add delete button for processed folders
+                var deleteButton = $('<img>');
+                deleteButton.attr('src', '/Content/Images/delete.png');
+                deleteButton.attr('class', 'button-image')
+                deleteButton.attr('width', maxButtonImageWidth)
+                deleteButton.attr('onClick', 'Delete("' + folderName + '")')
+
+                deleteButton.appendTo(resultContainer);
+            }
 
             // append result container to the user results container
             resultContainer.appendTo($('#userResultsContainer'));
-        }); 
+        });
 
 
     </script>
