@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -146,6 +147,13 @@ namespace StyleTransferWebApp.Helpers
             result.Reverse();
 
             return result;
+        }
+
+        public static void SaveImage(Image image, string path)
+        {
+            var bitmap = new Bitmap(image);
+            
+            bitmap.Save(path);
         }
 
 

@@ -60,13 +60,6 @@ namespace StyleTransferWebApp.Controllers
             return View();
         }
 
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
-
         public ActionResult UploadContentImage(HttpPostedFileBase file)
         {
             // save image to session
@@ -129,8 +122,8 @@ namespace StyleTransferWebApp.Controllers
                 string styleImagePath = Path.Combine(jobFolderPath, "style" + styleImage.extension);
 
                 // save images to the job folder
-                contentImage.image.Save(contentImagePath);
-                styleImage.image.Save(styleImagePath);
+                GeneralHelper.SaveImage(contentImage.image, contentImagePath);
+                GeneralHelper.SaveImage(styleImage.image, styleImagePath);
 
                 // get queue number and eta
                 numberInQueue = Directory.GetDirectories(inputPath).Length.ToString();
@@ -161,7 +154,7 @@ namespace StyleTransferWebApp.Controllers
 
             return RedirectToAction("Index", new { message = msg });
         }
-        public ActionResult DeleteOutputFolder(string folder)
+        public JsonResult DeleteOutputFolder(string folder)
         {
             bool deletedSuccessfully = false;
             string responseMessage = "";
