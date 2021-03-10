@@ -188,6 +188,60 @@ namespace StyleTransferWebApp.Controllers
             return this.Json(new { success = true, message = responseMessage });
         }
 
+        [HttpPost]
+        public JsonResult GetGeneratedImagesFromFolders(List<string> wipFolders, List<string> inqueueFolders)
+        {
+            // initialize result dictionaries
+            IDictionary<string, string> newGeneratedImages = new Dictionary<string, string>();
+            IDictionary<string, bool> folderStartedProcessing = new Dictionary<string, bool>();
+
+            // initialize the lists in case they are empty
+            if(wipFolders == null)
+            {
+                wipFolders = new List<string>();
+            }
+            if (inqueueFolders == null)
+            {
+                inqueueFolders = new List<string>();
+            }
+
+            try
+            {
+                string userID = Request.Cookies["userInfo"]["userID"];
+                var resultImages = GeneralHelper.GetResultsForUser(userID);
+
+                // get last generated image for wip folders (if no images it will be the WIP image)
+                foreach (var wipFolder in wipFolders)
+                {
+                    var lastGeneratedImage = resultImages.Where(r => r.contentImage.Contains(wipFolder)).First().generatedImages.Last();
+                    newGeneratedImages.Add(wipFolder, lastGeneratedImage);
+                }
+
+                // check if folder exists and return true/false (if true it will be updated to a WIP image
+                foreach (var inqueueFolder in inqueueFolders)
+                {
+                    var newWIPFolders = resultImages.Where(r => r.contentImage.Contains(inqueueFolder));
+
+                    if (newWIPFolders.Count() == 0)
+                    {
+                        // this folder has not started processing, yet
+                        folderStartedProcessing.Add(inqueueFolder, false);
+                    }
+                    else
+                    {
+                        // this folder has started processing and is now a WIP folder
+                        folderStartedProcessing.Add(inqueueFolder, true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return this.Json(new { success = false, exception = ex.Message });
+            }
+            
+            return this.Json(new { success = true, newGeneratedImages, folderStartedProcessing});
+        }
+
 
 
     }

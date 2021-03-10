@@ -54,3 +54,7 @@ textarea {
 .button-image:hover {
     opacity: 0.5;
 }
+
+.inqueue .wip{
+    /* it is not recommended to use these classes for styling as they have a special use */
+}

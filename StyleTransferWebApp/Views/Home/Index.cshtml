@@ -23,7 +23,7 @@
 @section Scripts{
 
     @*rendering section*@
-    <script>
+<script>
         function ImageClick(image) {
             window.open(image.src)
         };
@@ -42,18 +42,18 @@
         }
 
         // get data from model
-        var styleTransferUserResults = @Html.Raw(Json.Encode(Model.styleTransferUserResults));
+        let styleTransferUserResults = @Html.Raw(Json.Encode(Model.styleTransferUserResults));
 
-        var maxImageWidth = 300;
-        var maxButtonImageWidth = 20;
+        let maxImageWidth = 300;
+        let maxButtonImageWidth = 20;
 
         // render result images for each output folder this user has
         styleTransferUserResults.forEach(function (styleTransferUserResult) {
-            var resultContainer = $('<div>');
+            let resultContainer = $('<div>');
             resultContainer.attr('class', 'resultContainer')
 
             // add content image
-            var contentImage = $('<img>');
+            let contentImage = $('<img>');
             contentImage.attr('src', '/' + styleTransferUserResult.contentImage);
             contentImage.attr('class', 'image')
             contentImage.attr('width', maxImageWidth)
@@ -61,7 +61,7 @@
             contentImage.appendTo(resultContainer);
 
             // add style image
-            var styleImage = $('<img>');
+            let styleImage = $('<img>');
             styleImage.attr('src', '/' + styleTransferUserResult.styleImage);
             styleImage.attr('class', 'image')
             styleImage.attr('width', maxImageWidth)
@@ -69,24 +69,35 @@
             styleImage.appendTo(resultContainer);
 
             // add the last generated image
-            var generatedImage = $('<img>');
-            generatedImage.attr('src', '/' + styleTransferUserResult.generatedImages[styleTransferUserResult.generatedImages.length - 1]);
+            let generatedImage = $('<img>');
+            let fullGeneratedImagePath = styleTransferUserResult.generatedImages[styleTransferUserResult.generatedImages.length - 1];
+            let generatedImageName = fullGeneratedImagePath.split('/')[fullGeneratedImagePath.split('/').length - 1].toLowerCase()
+            generatedImage.attr('src', '/' + fullGeneratedImagePath);
             generatedImage.attr('class', 'image')
             generatedImage.attr('width', maxImageWidth)
             generatedImage.attr('onClick', 'ImageClick(this)')
+            if (generatedImageName.includes('queue')) {
+                // attach InQueue class and data
+                generatedImage.attr('class', 'image inqueue')
+                let inputFolderArray = styleTransferUserResult.contentImage.split('/')
+                let inputFolderNameArray = inputFolderArray[inputFolderArray.length - 2].split('_')
+                let outputFolderName = inputFolderNameArray[0] + '_' + inputFolderNameArray[2]
+                generatedImage.attr('data-folder', outputFolderName)
+            }
+            if (generatedImageName.includes('wip')) {
+                // attach WIP class and data
+                generatedImage.attr('class', 'image wip')
+                let inputFolderArray = styleTransferUserResult.contentImage.split('/')
+                let outputFolderName = inputFolderArray[inputFolderArray.length - 3]
+                generatedImage.attr('data-folder', outputFolderName)
+            }
             generatedImage.appendTo(resultContainer);
 
-            // add delete button
-            var fullFolderPath = styleTransferUserResult.generatedImages[styleTransferUserResult.generatedImages.length - 1];
-            var imageName = fullFolderPath.split('/')[fullFolderPath.split('/').length - 1].toLowerCase()
-            var folderName = fullFolderPath.split('/')[fullFolderPath.split('/').length - 2]
-            if (!imageName.includes('queue') && !imageName.includes('wip') && !imageName.includes('404')) {
+            // add delete button for completed jobs
+            let outputFolderName = fullGeneratedImagePath.split('/')[fullGeneratedImagePath.split('/').length - 2]
+            if (!generatedImageName.includes('queue') && !generatedImageName.includes('wip') && !generatedImageName.includes('404')) {
                 // only add delete button for processed folders
-                var deleteButton = $('<img>');
-                deleteButton.attr('src', '/Content/Images/delete.png');
-                deleteButton.attr('class', 'button-image')
-                deleteButton.attr('width', maxButtonImageWidth)
-                deleteButton.attr('onClick', 'Delete("' + folderName + '")')
+                let deleteButton = CreateDeleteButton(outputFolderName);
 
                 deleteButton.appendTo(resultContainer);
             }
@@ -95,8 +106,113 @@
             resultContainer.appendTo($('#userResultsContainer'));
         });
 
+        // define a delete button
+        function CreateDeleteButton(folder) {
+            let deleteButton = $('<img>');
+            deleteButton.attr('src', '/Content/Images/delete.png');
+            deleteButton.attr('class', 'button-image')
+            deleteButton.attr('width', maxButtonImageWidth)
+            deleteButton.attr('onClick', 'Delete("' + folder + '")')
 
-    </script>
+            return deleteButton;
+        }
+
+        // check for image updates
+        (function worker() {
+            // get image elements to check
+            let wipGeneratedImageElements = $('.wip')
+            let inqueueGeneratedImageElements = $('.inqueue')
+
+            // get folders for all wip image elements
+            let wipGeneratedImageFolders = new Array();
+            wipGeneratedImageElements.each(function (i, element) {
+                let folder = element.attributes["data-folder"].value;
+                wipGeneratedImageFolders.push(folder);
+            });
+
+            // get folders for all inqueue image elements
+            let inqueueGeneratedImageFolders = new Array();
+            inqueueGeneratedImageElements.each(function (i, element) {
+                let folder = element.attributes["data-folder"].value;
+                inqueueGeneratedImageFolders.push(folder);
+            });
+
+            // skip the request if there are no folders to query
+            if (wipGeneratedImageFolders.length == 0 && inqueueGeneratedImageFolders.length == 0) {
+                console.log('Image update fetch skipped.');
+                setTimeout(worker, 3000);
+                return;
+            }
+
+            $.ajax({
+                type: 'post',
+                data: { wipFolders: wipGeneratedImageFolders, inqueueFolders: inqueueGeneratedImageFolders},
+                url: '@Url.Action("GetGeneratedImagesFromFolders", "Home")',
+                success: function (data) {
+                    // check for updates and update image src
+                    console.log('Updated images fetched.');
+
+                    // update wip images if needed
+                    wipGeneratedImageElements.each(function (i, element) {
+                        let folder = element.attributes["data-folder"].value;
+                        if (!data.newGeneratedImages) {
+                            return; // continue
+                        }
+
+                        let newImagePath = data.newGeneratedImages[folder];
+                        if (!newImagePath) {
+                            return; // continue if no match found (just in case; this should never happen)
+                        }
+
+                        // update src if image is changed
+                        if (!element.src.includes(newImagePath)) {
+                            element.src = '/' + newImagePath;
+
+                            // remove WIP class and add delete button if final image
+                            if (newImagePath.includes('final')) {
+                                element.classList.remove('wip')
+
+                                let deleteButton = CreateDeleteButton(folder);
+                                deleteButton.appendTo(element.parentElement);
+                            }
+
+                        }
+                    });
+
+                    // update inqueue images to WIP images if needed
+                    inqueueGeneratedImageElements.each(function (i, element) {
+                        let folder = element.attributes["data-folder"].value;
+                        if (!data.folderStartedProcessing) {
+                            return; // continue
+                        }
+                        let folderStartedProcessing = data.folderStartedProcessing[folder];
+                        if (folderStartedProcessing == undefined || folderStartedProcessing == null) {
+                            return; // continue if no match found (just in case; this should never happen)
+                        }
+
+                        // update src if image started processing
+                        if (folderStartedProcessing) {
+                            element.src = '/Content/Images/WIP.jpg';
+
+                            // remove inqueue class and add wip
+                            element.classList.remove('inqueue');
+                            element.classList.add('wip');
+                        }
+                    });
+
+                },
+                error: function (data) {
+                    console.log('Fetching updated images failed with: ' + data.exception);
+                },
+                complete: function () {
+                    // schedule the next check when the current one is complete
+                    setTimeout(worker, 3000);
+                }
+            });
+
+        })();
+
+</script>
 
 
     @*initialization for the separate script files*@
