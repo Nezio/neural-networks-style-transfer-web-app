@@ -150,7 +150,7 @@ namespace StyleTransferWebApp.Controllers
             Session["content_image"] = null;
             Session["style_image"] = null;
 
-            string msg = "Style trasnfer is in progress. You are number " + numberInQueue + " in the queue. Refresh the page in about " + eta + " minutes to see the results.";
+            string msg = "Style trasnfer is in progress. You are number " + numberInQueue + " in the queue. The image will be complete in about " + eta + " minutes, but you will be able to see the early results before that.";
 
             return RedirectToAction("Index", new { message = msg });
         }

@@ -84,7 +84,7 @@
                 let outputFolderName = inputFolderNameArray[0] + '_' + inputFolderNameArray[2]
                 generatedImage.attr('data-folder', outputFolderName)
             }
-            if (generatedImageName.includes('wip')) {
+            if (generatedImageName.includes('wip') || (!generatedImageName.includes('404') && !generatedImageName.includes('queue') && !generatedImageName.includes('final'))) {
                 // attach WIP class and data
                 generatedImage.attr('class', 'image wip')
                 let inputFolderArray = styleTransferUserResult.contentImage.split('/')
@@ -95,7 +95,7 @@
 
             // add delete button for completed jobs
             let outputFolderName = fullGeneratedImagePath.split('/')[fullGeneratedImagePath.split('/').length - 2]
-            if (!generatedImageName.includes('queue') && !generatedImageName.includes('wip') && !generatedImageName.includes('404')) {
+            if (!generatedImageName.includes('queue') && !generatedImageName.includes('wip') && !generatedImageName.includes('404') && generatedImageName.includes('final')) {
                 // only add delete button for processed folders
                 let deleteButton = CreateDeleteButton(outputFolderName);
 
