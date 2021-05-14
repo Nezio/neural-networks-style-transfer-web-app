@@ -4,7 +4,6 @@ Dropzone.autoDiscover = false;
 window.onload = function () {
     if (responseMessage) {
         alert(responseMessage);
-        window.location.href = "/Home/Index";
     }
 
     InitializeDropzoneSettings();

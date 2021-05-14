@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Web;
 using System.Web.Configuration;
 using System.Web.Hosting;
@@ -30,6 +31,24 @@ namespace StyleTransferWebApp.Controllers
                 userID = userInfo["userID"] = Guid.NewGuid().ToString();
                 userInfo.Expires = DateTime.Now.AddDays(180);
                 Response.Cookies.Add(userInfo);
+            }
+
+            // conditional sleep to fix the bug with 404 images rendering wehn starting new style trasnfer even if no images are actually 404
+            // (probably some race condition because images are moved from input folder)
+            var unprocessedImagesTest = GeneralHelper.GetUnprocessedImagesForUser(userID);
+            var resultImagesTest = GeneralHelper.GetResultsForUser(userID);
+            bool doSleep = false;
+            if (unprocessedImagesTest != null && unprocessedImagesTest.Any(i => i.contentImage.Contains("404")))
+            {
+                doSleep = true;
+            }
+            if (resultImagesTest != null && resultImagesTest.Any(i => i.contentImage.Contains("404")))
+            {
+                doSleep = true;
+            }
+            if (doSleep)
+            {
+                Thread.Sleep(4000);
             }
 
             // preppend unprocessed job folders to the results list
